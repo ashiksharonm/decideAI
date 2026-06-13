@@ -19,7 +19,7 @@ public class CopilotService : ICopilotService
         var groqApiKey = Environment.GetEnvironmentVariable("GROQ_API_KEY") ?? "MISSING_KEY";
         
         builder.AddOpenAIChatCompletion(
-            modelId: "llama3-8b-8192", 
+            modelId: "llama-3.1-8b-instant", 
             apiKey: groqApiKey,
             httpClient: new HttpClient() { BaseAddress = new Uri("https://api.groq.com/openai/v1/") }
         );
