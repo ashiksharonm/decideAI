@@ -47,11 +47,68 @@ dotnet run
 * Ensure the "Office/SharePoint development" workload is installed.
 * Build and run the `DecideAI.AddIn` project to launch Excel with the Copilot side-pane.
 
-## Architecture
+## Architecture Design
 
-1. **User asks a question** in Excel: *"Which Nexus Series 7 products have a gross margin under 40%?"*
-2. **VSTO Add-in** calls the `.NET 8 Web API`.
-3. **Semantic Kernel** interprets the intent and invokes the **MongoDB Tool**.
-4. **MongoDB** is queried for matching product lines and financial metrics.
-5. **Semantic Kernel** formats the data into a decision matrix.
-6. **VSTO Add-in** writes the matrix directly into the active Excel worksheet.
+### High-Level Architecture
+This diagram illustrates the macro-level flow of data from the user interface down to the cloud models and data stores.
+
+```mermaid
+graph LR
+    User([User]) --> |Asks Question| UI[Excel VSTO Add-in]
+    UI --> |REST API POST| API[DecideAI .NET 8 API]
+    
+    subgraph Backend Orchestration
+        API --> |Context & Tools| SK[Semantic Kernel]
+        SK <--> |Prompt / Response| LLM[Groq Cloud LLM]
+    end
+    
+    subgraph Data Sources
+        SK <--> |Queries via Plugin| DB[(MongoDB)]
+        SK <--> |Live Market Data| YF[Yahoo Finance]
+    end
+
+    classDef primary fill:#f9f,stroke:#333,stroke-width:2px;
+    class SK,API primary;
+```
+
+### Detailed Execution Flow (Sequence Diagram)
+This diagram illustrates the step-by-step Tool Calling (Auto-Invoke) process handled by Microsoft Semantic Kernel.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant Excel as VSTO Add-in
+    participant API as CopilotController
+    participant SK as Semantic Kernel
+    participant LLM as Groq LLM
+    participant Plugins as Data Plugins
+    participant External as MongoDB / Yahoo Finance
+
+    User->>Excel: Asks "Summary of flagship products?"
+    Excel->>API: POST /api/Copilot/ask
+    API->>SK: AskQuestionAsync(question)
+    SK->>LLM: Send system prompt & available tools
+    
+    rect rgb(240, 248, 255)
+        Note right of LLM: Autonomous Tool Calling Loop
+        LLM-->>SK: Action: Needs Database Context
+        SK->>Plugins: Execute GetProductsFromDb()
+        Plugins->>External: Query Product Collections
+        External-->>Plugins: Return Document Data
+        Plugins-->>SK: Return Tool Result
+        
+        SK->>LLM: Provide context to LLM
+        LLM-->>SK: Action: Needs Financial Context
+        SK->>Plugins: Execute GetFinancialMetrics()
+        Plugins->>External: Fetch live stock/KPI data
+        External-->>Plugins: Return Market Data
+        Plugins-->>SK: Return Tool Result
+        SK->>LLM: Provide context to LLM
+    end
+    
+    LLM-->>SK: Synthesize final user-friendly answer
+    SK-->>API: Return formatted string
+    API-->>Excel: HTTP 200 OK (JSON)
+    Excel-->>User: Render matrix directly into spreadsheet
+```
