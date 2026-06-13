@@ -18,35 +18,6 @@ DecideAI is an AI-powered Enterprise Portfolio Copilot that integrates directly 
 * `DecideAI.AddIn`: VSTO Excel Add-in project (C#).
 * `docker-compose.yml`: Local infrastructure setup (MongoDB, Ollama).
 
-## Getting Started
-
-### Prerequisites
-* [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-* [Docker Desktop](https://www.docker.com/products/docker-desktop)
-* Visual Studio (Windows) for the VSTO Add-In development.
-
-### Running Local Infrastructure
-1. Start MongoDB and Ollama using Docker:
-   ```bash
-   docker-compose up -d
-   ```
-2. Pull the local LLM model (e.g., phi3 or llama3):
-   ```bash
-   docker exec -it decideai_ollama ollama pull phi3
-   docker exec -it decideai_ollama ollama pull nomic-embed-text
-   ```
-
-### Running the API
-```bash
-cd DecideAI.API
-dotnet run
-```
-
-### Developing the VSTO Add-In
-* Open the solution in Visual Studio on Windows.
-* Ensure the "Office/SharePoint development" workload is installed.
-* Build and run the `DecideAI.AddIn` project to launch Excel with the Copilot side-pane.
-
 ## Architecture Design
 
 ### High-Level Architecture
@@ -112,3 +83,32 @@ sequenceDiagram
     API-->>Excel: HTTP 200 OK (JSON)
     Excel-->>User: Render matrix directly into spreadsheet
 ```
+
+## Getting Started
+
+### Prerequisites
+* [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+* [Docker Desktop](https://www.docker.com/products/docker-desktop)
+* Visual Studio (Windows) for the VSTO Add-In development.
+
+### Running Local Infrastructure
+1. Start MongoDB and Ollama using Docker:
+   ```bash
+   docker-compose up -d
+   ```
+2. Pull the local LLM model (e.g., phi3 or llama3):
+   ```bash
+   docker exec -it decideai_ollama ollama pull phi3
+   docker exec -it decideai_ollama ollama pull nomic-embed-text
+   ```
+
+### Running the API
+```bash
+cd DecideAI.API
+dotnet run
+```
+
+### Developing the VSTO Add-In
+* Open the solution in Visual Studio on Windows.
+* Ensure the "Office/SharePoint development" workload is installed.
+* Build and run the `DecideAI.AddIn` project to launch Excel with the Copilot side-pane.
